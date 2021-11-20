@@ -1,0 +1,23 @@
+{
+  "name": "azure-devops-extension-sample",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cookbr/azure-devops-extension-sample.git"
+  },
+  "author": "Bryan.Cook <bryan.cook@energage.com>",
+  "license": "MIT",
+  "dependencies": {
+    "vss-web-extension-sdk": "^5.141.0"
+  },
+  "bugs": {
+    "url": "https://github.com/cookbr/azure-devops-extension-sample/issues"
+  },
+  "homepage": "https://github.com/cookbr/azure-devops-extension-sample#readme",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "description": ""
+}
