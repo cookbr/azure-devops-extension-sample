@@ -1,31 +1,16 @@
 {
-  "name": "azure-devops-extension-sample",
-  "version": "1.0.0",
-  "description": "Azure DevOps Extension Sample",
-  "keywords": [
-    "Azure DevOps",
-    "Visual Studio Team Services"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/cookbr/azure-devops-extension-sample.git"
-  },
-  "author": "Bryan.Cook <bryan.cook@energage.com>",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/cookbr/azure-devops-extension-sample/issues"
-  },
-  "homepage": "https://github.com/cookbr/azure-devops-extension-sample#readme",
-  "main": "./src/index.tsx",
+  "name": "my-first-extension",
+  "description": "A short description of my extension",
+  "author": "bryan-cook",
   "scripts": {
-    "clean": "rimraf ./dist",
+    "clean": "rimraf ./dist ./out",
     "compile": "npm run clean && webpack --mode production",
     "compile:dev": "npm run clean && webpack --mode development",
-    "build": "npm run compile",
-    "build:dev": "npm run compile:dev && npm run postbuild",
-    "postbuild": "npm run package-extension -- --rev-version",
-    "package-extension": "tfx extension create --manifest-globs azure-devops-extension.json src/**/*.json",
-    "publish-extension": "tfx extension publish --manifest-globs azure-devops-extension.json src/**/*.json"
+    "package": "npm run compile && tfx extension create --manifest-globs vss-extension.json --overrides-file configs/release.json --output-path out",
+    "package:dev": "npm run compile:dev && tfx extension create --manifest-globs vss-extension.json --overrides-file configs/dev.json --output-path out",
+    "publish": "npm run compile && tfx extension publish --manifest-globs vss-extension.json --overrides-file configs/release.json --output-path out",
+    "publish:dev": "npm run compile:dev && tfx extension publish --manifest-globs vss-extension.json --overrides-file configs/dev.json --output-path out",
+    "start:dev": "webpack-dev-server --mode development"
   },
   "dependencies": {
     "azure-devops-extension-api": "^1.158.0",
@@ -37,17 +22,25 @@
   "devDependencies": {
     "@types/react": "^17.0.35",
     "@types/react-dom": "^17.0.11",
-    "base64-inline-loader": "~2.0.1",
+    "@typescript-eslint/eslint-plugin": "^5.4.0",
+    "@typescript-eslint/parser": "^5.4.0",
+    "base64-inline-loader": "^2.0.1",
     "copy-webpack-plugin": "^10.0.0",
-    "css-loader": "~6.5.1",
+    "css-loader": "^6.5.1",
+    "eslint": "^8.2.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "file-loader": "^6.2.0",
     "node-sass": "^6.0.1",
-    "rimraf": "~3.0.2",
-    "sass-loader": "~12.3.0",
-    "style-loader": "~3.3.1",
+    "prettier": "^2.4.1",
+    "rimraf": "^3.0.2",
+    "sass-loader": "^12.3.0",
+    "style-loader": "^3.3.1",
     "tfx-cli": "^0.9.3",
-    "ts-loader": "~9.2.6",
+    "ts-loader": "^9.2.6",
     "typescript": "^4.5.2",
-    "vss-version": "^1.0.2",
-    "webpack-cli": "^4.9.1"
+    "webpack": "^5.64.2",
+    "webpack-cli": "^4.9.1",
+    "webpack-dev-server": "^4.5.0"
   }
 }

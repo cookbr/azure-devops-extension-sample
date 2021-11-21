@@ -2,63 +2,71 @@ const path = require("path");
 const fs = require("fs");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 
-// Webpack entry points. Mapping from resulting bundle name to the source file entry.
 const entries = {};
-
-// Loop through subfolders in the "src" folder and add an entry for each one
 const srcDir = path.join(__dirname, "src");
-fs.readdirSync(srcDir).filter(dir => {
-    if (fs.statSync(path.join(srcDir, dir)).isDirectory()) {
-        //if (dir != "__mocks__" && dir != "Shared" && dir != "Tests")
-        entries[dir] = "./" + path.relative(process.cwd(), path.join(srcDir, dir, dir));
-    }
-});
+fs.readdirSync(srcDir)
+  .filter((dir) => fs.statSync(path.join(srcDir, dir)).isDirectory())
+  .forEach((dir) => (entries[dir] = "./" + path.join("src", dir, dir)));
 
 module.exports = {
-    entry: entries,
-    output: {
-        filename: "[name]/[name].js"
+  target: "web",
+  entry: entries,
+  output: {
+    filename: "[name]/[name].js",
+    publicPath: "/dist/",
+  },
+  devtool: "inline-source-map",
+  devServer: {
+    https: true,
+    port: 3000,
+  },
+  resolve: {
+    extensions: [".ts", ".tsx", ".js"],
+    alias: {
+      "azure-devops-extension-sdk": path.resolve(
+        "node_modules/azure-devops-extension-sdk"
+      ),
     },
-    resolve: {
-        extensions: [".ts", ".tsx", ".js"],
-        alias: {
-            "azure-devops-extension-sdk": path.resolve("node_modules/azure-devops-extension-sdk")
-        },
-    },
-    stats: {
-        warnings: false
-    },
-    module: {
-        rules: [
-            {
-                test: /\.tsx?$/,
-                loader: "ts-loader"
-            },
-            {
-                test: /\.scss$/,
-                use: ["style-loader", "css-loader", "azure-devops-ui/buildScripts/css-variables-loader", "sass-loader"]
-            },
-            {
-                test: /\.css$/,
-                use: ["style-loader", "css-loader"],
-            },
-            {
-                test: /\.woff$/,
-                use: [{
-                    loader: 'base64-inline-loader'
-                }]
-            },
-            {
-                test: /\.html$/,
-                loader: "file-loader"
-            }
-        ]
-    },
-    plugins: [
-        new CopyWebpackPlugin({
-            patterns: [ 
-                { from: "**/*.html", context: "src" }
-            ]
-         })
-    ]
+  },
+  stats: {
+    warnings: false,
+  },
+  module: {
+    rules: [
+      {
+        test: /\.tsx?$/,
+        use: "ts-loader",
+      },
+      {
+        test: /\.scss$/,
+        use: [
+          "style-loader",
+          "css-loader",
+          "azure-devops-ui/buildScripts/css-variables-loader",
+          "sass-loader",
+        ],
+      },
+      {
+        test: /\.css$/,
+        use: ["style-loader", "css-loader"],
+      },
+      {
+        test: /\.woff$/,
+        use: [
+          {
+            loader: "base64-inline-loader",
+          },
+        ],
+      },
+      {
+        test: /\.html$/,
+        use: "file-loader",
+      },
+    ],
+  },
+  plugins: [
+    new CopyWebpackPlugin({
+      patterns: [{ from: "**/*.html", context: "src" }],
+    }),
+  ],
 };
