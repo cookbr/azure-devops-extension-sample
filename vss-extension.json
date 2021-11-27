@@ -1,6 +1,6 @@
 {
   "manifestVersion": 1,
-  "version": "1.0.5",
+  "version": "1.0.15",
   "name": "My First Extension",
   "description": "A short description of my extension",
   "publisher": "bryan-cook",
@@ -35,29 +35,19 @@
   ],
   "contributions": [
     {
-      "id": "hello-world-hub-group",
-      "type": "ms.vss-web.hub-group",
-      "description": "Sample hub group",
+      "id": "sample-work-item-form-control",
+      "type": "ms.vss-work-web.work-item-form-control",
+      "description": "Sample Work Item Form Control",
       "targets": [
-        "ms.vss-web.project-hub-groups-collection"
+        "ms.vss-work-web.work-item-form"
       ],
       "properties": {
-        "name": "Hello World!",
-        "icon": {
-          "dark": "img/world.png",
-          "light": "img/world.png"
-        }
-      }
-    },
-    {
-      "id": "default-hub",
-      "type": "ms.vss-web.hub",
-      "targets": [
-        ".hello-world-hub-group"
-      ],
-      "properties": {
-        "uri": "dist/hub/hub.html"
+        "name": "Sample Work Item Form Control",
+        "uri": "dist/WorkItemControl/index.html"
       }
     }
+  ],
+  "scopes": [
+    "vso.work"
   ]
 }
