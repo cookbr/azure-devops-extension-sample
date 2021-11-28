@@ -9,6 +9,10 @@
       "reAttach": true,
       "pathMappings": [
         {
+          "url": "webpack://my-first-extension/src",
+          "path": "${workspaceFolder}/src"
+        },
+        {
           "url": "webpack:///",
           "path": "${workspaceFolder}/"
         }
