@@ -11,7 +11,7 @@ import {
 import * as SDK from "azure-devops-extension-sdk";
 import { FormItem } from "azure-devops-ui/FormItem";
 import { TextField } from "azure-devops-ui/TextField";
-import { Duration } from "azure-devops-ui/Duration";
+import { duration } from "azure-devops-ui/Utilities/Date";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
@@ -24,7 +24,7 @@ enum WorkItemFieldReferenceNames {
 interface WorkItemFormGroupComponentState {
   dateCreated: Date | undefined;
   dateActivated: Date | undefined;
-  dateCompleted: Date | undefined;
+  dateClosed: Date | undefined;
 }
 
 export class WorkItemControlComponent extends React.Component<
@@ -36,7 +36,7 @@ export class WorkItemControlComponent extends React.Component<
     this.state = {
       dateCreated: undefined,
       dateActivated: undefined,
-      dateCompleted: undefined,
+      dateClosed: undefined,
     };
   }
 
@@ -47,25 +47,40 @@ export class WorkItemControlComponent extends React.Component<
   }
 
   public render(): JSX.Element {
-    // TODO Better UI when work item is active or yet to be activated
-    var { dateCreated, dateActivated, dateCompleted } = this.state;
+    var { dateCreated, dateActivated, dateClosed } = this.state;
 
     return (
       <>
         <FormItem label="Lead Time" className="foo-form-item">
-          <Duration
-            startDate={dateCreated ?? new Date()}
-            endDate={dateCompleted}
+          <TextField
+            className="foo-text-field"
+            value={this.getDuration(dateCreated, dateClosed)}
+            readOnly={true}
+          />
+        </FormItem>
+        <FormItem label="Cycle Time" className="foo-form-item">
+          <TextField
+            className="foo-text-field"
+            value={this.getDuration(dateActivated, dateClosed)}
+            readOnly={true}
           />
         </FormItem>
       </>
     );
   }
 
+  private getDuration(beginning: Date | undefined, end: Date | undefined): string {
+    if (beginning && end) {
+      return duration(beginning, end);
+    }
+    if (beginning) {
+      return `TBD (Currently ${duration(beginning, end)})`;
+    }
+    return "";
+  }
+
   private refresh(): void {
-    SDK.getService<IWorkItemFormService>(
-      WorkItemTrackingServiceIds.WorkItemFormService
-    )
+    SDK.getService<IWorkItemFormService>(WorkItemTrackingServiceIds.WorkItemFormService)
       .then((service) => {
         const fieldReferenceNames: string[] = [
           WorkItemFieldReferenceNames.CreatedDate,
@@ -79,20 +94,17 @@ export class WorkItemControlComponent extends React.Component<
       .then((dates) => {
         console.dir(dates);
         this.setState({
-          dateCreated: dates[WorkItemFieldReferenceNames.CreatedDate] as
-            | Date
-            | undefined,
+          dateCreated: dates[WorkItemFieldReferenceNames.CreatedDate] as Date | undefined,
           dateActivated: dates[WorkItemFieldReferenceNames.ActivatedDate] as
             | Date
             | undefined,
-          dateCompleted: dates[WorkItemFieldReferenceNames.ClosedDate] as
-            | Date
-            | undefined,
+          dateClosed: dates[WorkItemFieldReferenceNames.ClosedDate] as Date | undefined,
         });
       });
   }
 
   private registerEvents(): void {
+    // TODO Update state using *Args to forgo running through IWorkItemFormService (assuming there's a network tax)
     SDK.register(SDK.getContributionId(), () => {
       return {
         // Called when the active work item is modified
