@@ -1,8 +1,8 @@
 {
   "manifestVersion": 1,
-  "version": "1.0.19",
-  "name": "My First Extension",
-  "description": "A short description of my extension",
+  "version": "1.0.21",
+  "name": "Time Metrics",
+  "description": "A custom control for work items providing lead and cycle time.",
   "publisher": "bryan-cook",
   "demands": [
     "api-version/3.0"
@@ -21,7 +21,7 @@
     }
   },
   "icons": {
-    "default": "img/world.png"
+    "default": "img/icon.png"
   },
   "files": [
     {
@@ -35,15 +35,15 @@
   ],
   "contributions": [
     {
-      "id": "sample-work-item-form-control",
+      "id": "bryan-cook-time-metrics-work-item-form-control",
       "type": "ms.vss-work-web.work-item-form-control",
-      "description": "Sample Work Item Form Control",
+      "description": "A custom control for work items providing lead and cycle time.",
       "targets": [
         "ms.vss-work-web.work-item-form"
       ],
       "properties": {
-        "name": "Sample Work Item Form Control",
-        "uri": "dist/WorkItemControl/index.html"
+        "name": "Time Metrics Work Item Form Control",
+        "uri": "dist/TimeMetricsWorkItemFormControl/index.html"
       }
     }
   ],

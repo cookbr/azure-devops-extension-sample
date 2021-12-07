@@ -1,6 +1,6 @@
 {
-  "name": "my-first-extension",
-  "description": "A short description of my extension",
+  "name": "time-metrics",
+  "description": "A custom control for work items providing lead and cycle time.",
   "author": "bryan-cook",
   "scripts": {
     "clean": "rimraf ./dist ./out",

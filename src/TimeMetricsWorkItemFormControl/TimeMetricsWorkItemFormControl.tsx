@@ -108,7 +108,6 @@ export class TimeMetricsComponent extends React.Component<TimeMetricsProps, Time
         returnOriginalValue: false,
       }
     );
-    console.dir(datesFromSdk);
     return {
       dateCreated: this.getDateOrUndefined(
         prevState.dateCreated,

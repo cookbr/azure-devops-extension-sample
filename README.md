@@ -1,6 +1,6 @@
-# My First Extension
+# Time Metrics
 
-A short description of my extension
+A custom control for work items providing lead and cycle time.
 
 ## Running this project
 
