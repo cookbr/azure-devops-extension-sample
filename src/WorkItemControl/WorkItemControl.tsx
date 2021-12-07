@@ -2,8 +2,6 @@ import "azure-devops-ui/Core/override.css";
 import "./index.scss";
 
 import {
-  IWorkItemChangedArgs,
-  IWorkItemFieldChangedArgs,
   IWorkItemFormService,
   IWorkItemLoadedArgs,
   WorkItemTrackingServiceIds,
@@ -15,23 +13,22 @@ import { duration } from "azure-devops-ui/Utilities/Date";
 import * as React from "react";
 import * as ReactDOM from "react-dom";
 
-enum WorkItemFieldReferenceNames {
+enum FieldReferenceName {
   CreatedDate = "System.CreatedDate",
   ActivatedDate = "Microsoft.VSTS.Common.ActivatedDate",
   ClosedDate = "Microsoft.VSTS.Common.ClosedDate",
 }
 
-interface WorkItemFormGroupComponentState {
+interface TimeMetricsProps {}
+
+interface TimeMetricsState {
   dateCreated: Date | undefined;
   dateActivated: Date | undefined;
   dateClosed: Date | undefined;
 }
 
-export class WorkItemControlComponent extends React.Component<
-  {},
-  WorkItemFormGroupComponentState
-> {
-  constructor(props: {}) {
+export class TimeMetricsComponent extends React.Component<TimeMetricsProps, TimeMetricsState> {
+  constructor(props: TimeMetricsProps) {
     super(props);
     this.state = {
       dateCreated: undefined,
@@ -46,27 +43,49 @@ export class WorkItemControlComponent extends React.Component<
     });
   }
 
+  public componentWillUnmount() {
+    SDK.unregister(SDK.getContributionId());
+  }
+
   public render(): JSX.Element {
     var { dateCreated, dateActivated, dateClosed } = this.state;
 
     return (
       <>
-        <FormItem label="Lead Time" className="foo-form-item">
+        <FormItem label="Lead Time" className="time-metrics-form-item">
           <TextField
-            className="foo-text-field"
+            className="time-metrics-text-field"
             value={this.getDuration(dateCreated, dateClosed)}
             readOnly={true}
           />
         </FormItem>
-        <FormItem label="Cycle Time" className="foo-form-item">
+        <FormItem label="Cycle Time" className="time-metrics-form-item">
           <TextField
-            className="foo-text-field"
+            className="time-metrics-text-field"
             value={this.getDuration(dateActivated, dateClosed)}
             readOnly={true}
           />
         </FormItem>
       </>
     );
+  }
+
+  private getDateOrUndefined(valueFromPrevState: Date | undefined, valueFromSdk: any): Date | undefined {
+    if (valueFromSdk === null || valueFromSdk === undefined) {
+      return undefined;
+    }
+    /*
+      Scenario: Begin @ New, Update → Committed, Save
+        dateActivated = Object { type: 1, toString: key(), valueOf: key() }
+
+      Scenario: Begin @ Comitted, Update → Done, Save
+        dateClosed = Object { type: 1, toString: key(), valueOf: key() }
+    */
+    if (typeof valueFromSdk === "object" && "type" in valueFromSdk) {
+      // TODO Better, TypeScript-y way to perform this check?
+      return valueFromPrevState ?? new Date();
+    }
+    return valueFromSdk as Date;
   }
 
   private getDuration(beginning: Date | undefined, end: Date | undefined): string {
@@ -79,70 +98,50 @@ export class WorkItemControlComponent extends React.Component<
     return "";
   }
 
-  private refresh(): void {
-    SDK.getService<IWorkItemFormService>(WorkItemTrackingServiceIds.WorkItemFormService)
-      .then((service) => {
-        const fieldReferenceNames: string[] = [
-          WorkItemFieldReferenceNames.CreatedDate,
-          WorkItemFieldReferenceNames.ActivatedDate,
-          WorkItemFieldReferenceNames.ClosedDate,
-        ];
-        return service.getFieldValues(fieldReferenceNames, {
-          returnOriginalValue: false,
-        });
-      })
-      .then((dates) => {
-        console.dir(dates);
-        this.setState({
-          dateCreated: dates[WorkItemFieldReferenceNames.CreatedDate] as Date | undefined,
-          dateActivated: dates[WorkItemFieldReferenceNames.ActivatedDate] as
-            | Date
-            | undefined,
-          dateClosed: dates[WorkItemFieldReferenceNames.ClosedDate] as Date | undefined,
-        });
-      });
+  private async getStateFromSdk(prevState: Readonly<TimeMetricsState>): Promise<TimeMetricsState> {
+    const service = await SDK.getService<IWorkItemFormService>(
+      WorkItemTrackingServiceIds.WorkItemFormService
+    );
+    const datesFromSdk = await service.getFieldValues(
+      [FieldReferenceName.CreatedDate, FieldReferenceName.ActivatedDate, FieldReferenceName.ClosedDate],
+      {
+        returnOriginalValue: false,
+      }
+    );
+    console.dir(datesFromSdk);
+    return {
+      dateCreated: this.getDateOrUndefined(
+        prevState.dateCreated,
+        datesFromSdk[FieldReferenceName.CreatedDate]
+      ),
+      dateActivated: this.getDateOrUndefined(
+        prevState.dateActivated,
+        datesFromSdk[FieldReferenceName.ActivatedDate]
+      ),
+      dateClosed: this.getDateOrUndefined(prevState.dateClosed, datesFromSdk[FieldReferenceName.ClosedDate]),
+    };
   }
 
   private registerEvents(): void {
-    // TODO Update state using *Args to forgo running through IWorkItemFormService (assuming there's a network tax)
     SDK.register(SDK.getContributionId(), () => {
       return {
-        // Called when the active work item is modified
-        onFieldChanged: (args: IWorkItemFieldChangedArgs) => {
-          console.debug(`onFieldChanged - ${JSON.stringify(args)}`);
-          this.refresh();
-        },
-
-        // Called when a new work item is being loaded in the UI
         onLoaded: (args: IWorkItemLoadedArgs) => {
-          console.debug(`onLoaded - ${JSON.stringify(args)}`);
-          this.refresh();
+          if (args.isNew) {
+            return;
+          }
+          this.getStateFromSdk(this.state).then((state) => {
+            this.setState(state);
+          });
         },
 
-        // Called when the active work item is being unloaded in the UI
-        onUnloaded: (args: IWorkItemChangedArgs) => {
-          console.debug(`onUnloaded - ${JSON.stringify(args)}`);
-        },
-
-        // Called after the work item has been saved
-        onSaved: (args: IWorkItemChangedArgs) => {
-          console.log(`onSaved - ${JSON.stringify(args)}`);
-        },
-
-        // Called when the work item is reset to its unmodified state (undo)
-        onReset: (args: IWorkItemChangedArgs) => {
-          console.log(`onReset - ${JSON.stringify(args)}`);
-          this.refresh();
-        },
-
-        // Called when the work item has been refreshed from the server
-        onRefreshed: (args: IWorkItemChangedArgs) => {
-          console.debug(`onRefreshed - ${JSON.stringify(args)}`);
-          this.refresh();
+        onSaved: () => {
+          this.getStateFromSdk(this.state).then((state) => {
+            this.setState(state);
+          });
         },
       };
     });
   }
 }
 
-ReactDOM.render(<WorkItemControlComponent />, document.getElementById("root"));
+ReactDOM.render(<TimeMetricsComponent />, document.getElementById("root"));

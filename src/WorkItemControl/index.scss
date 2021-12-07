@@ -1,6 +1,6 @@
 @import "node_modules/azure-devops-ui/Core/_platformCommon.scss";
 
-.foo-form-item {
+.time-metrics-form-item {
   & label {
     color: var(--text-secondary-color);
     font-size: 12px;
@@ -8,7 +8,7 @@
   }
 }
 
-.foo-text-field {
+.time-metrics-text-field {
   padding: 1px 2px;
   width: 100%;
   min-width: 0;
